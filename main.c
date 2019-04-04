@@ -1,28 +1,28 @@
-//Acest proiect este destinat criptarii si decriptarii de imagini in format BitMap, citindu-le ca fisiere binare
-//Formatul BitMap acceptat de acest program este unul simplist, tratand doar imaginile ce contin in scrierea binara cei 54 de octeti de header si tabloul de pixeli
+//Acest proiect este destinat criptarii si decriptarii de imagini in format BitMap, citindu-le ca fisiere binare.
+//Formatul BitMap acceptat de acest program este unul simplist, tratand doar imaginile ce contin in scrierea binara cei 54 de octeti de header si tabloul de pixeli.
 //Datele de intrare vor fi dupa cum urmeaza:
 //                      calea fisierului de intrare;
 //                      calea si noul nume al fisierului de iesire (nu este necesar ca acesta sa existe, programul il creeaza automat atat timp cat calea si denumirea sunt date);
-//                      calea fisierului text in care se va afla doua chei secrete, folosite la criptarea/decriptarea unei imagini deja criptate
-//Datelevor fi citite de la tastatura
+//                      calea fisierului text in care se vor afla doua chei secrete, folosite la criptarea unei imagini sau decriptarea unei imagini deja criptate.
+//Datele vor fi citite de la tastatura.
 
 
 #include <stdio.h>
 #include <stdlib.h>
 
-//Structura ce va contine octetii red, green, blue ai fiecarui pixel
+//structura ce va contine octetii red, green, blue ai fiecarui pixel
 typedef struct pixel
 {
     unsigned char r,g,b;
 };
 
-//Structura ce va permite accesarea octetilor cheii secrete date ca numar intreg,conform Little Endian
+//structura ce va permite accesarea octetilor cheilor secrete date ca numar intreg, conform principiului Little Endian
 typedef union secretkey
 {
     unsigned long int SV;
     unsigned char c[4];
 };
-//Generatorul XORSHIFT32 etse un generator de numere aparent aleatoare; numerele generate de acesta vor fi folosite la criptare
+//Generatorul XORSHIFT32 etse un generator de numere aparent aleatoare; numerele generate de acesta vor fi folosite la criptare.
 //primeste ca parametru un pointer catre un vector alocat dinamic, lungimea acestuia si un "seed" de la care se va incepe generarea numerelor
 void XORSHIFT32( unsigned long int *v, long int n, long unsigned int seed)
 {
@@ -33,7 +33,7 @@ void XORSHIFT32( unsigned long int *v, long int n, long unsigned int seed)
     v[0]=seed;
     for(i=1; i<n; i++)
     {
-        //toate celelalte numere se vor obtine prin shiftarea pixelilor numarului anterior astfe:
+        //toate celelalte numere se vor obtine prin shiftarea pixelilor numarului anterior astfel:
         nr=nr^nr<<13;
         nr=nr^nr>>17;
         nr=nr^nr<<5;
@@ -42,7 +42,7 @@ void XORSHIFT32( unsigned long int *v, long int n, long unsigned int seed)
 }
 
 //functie pentru citirea Header-ului imaginii
-//functia primeste calea fisierului BitMap si, prin intermediul celorlalti parametri, va transmite headerul alocat dinamic, dar si dimensiunile imaginii dupa cum reies din acesta
+//functia primeste calea fisierului BitMap si, prin intermediul celorlalti parametri, va transmite headerul alocat dinamic, dar si dimensiunile imaginii dupa cum reies din acesta.
 void citesc_header(char *calefisier,unsigned char **header, unsigned long int *lung, unsigned long int *lat)
 {
     unsigned char h;
@@ -100,7 +100,7 @@ void matrice_pixeli_liniarizata(struct pixel **pix, unsigned long int lungime, u
         exit(0);
     }
 }
-//functie pentru citirea tabloului de pixeli si aducerea acestuia la forma liniarizata, asa cum se vede poza cu ochiul liber (reprezentand incepand cu coltul de stanga sus si nu stanga jos)
+//functie pentru citirea tabloului de pixeli si aducerea acestuia la forma liniarizata, asa cum se poate vedea in imagine cu ochiul liber (reprezentand incepand cu coltul de stanga sus si nu stanga jos)
 void citire_pixel(char *calefisier, struct pixel *img, unsigned long int lungime, unsigned long int latime)
 {
     FILE *fin=fopen(calefisier,"rb");
@@ -151,7 +151,7 @@ void citire_pixel(char *calefisier, struct pixel *img, unsigned long int lungime
 
     fclose(fin);
 }
-//afisarea unei imagini stocata sub forma liniarizata
+//afisarea unei imagini stocate sub forma liniarizata
 void afisare(char *calefisier,unsigned char *header, struct pixel *img, unsigned long int lungime, unsigned long int latime)
 {
     FILE *fout=fopen(calefisier, "wb");
@@ -176,7 +176,7 @@ void afisare(char *calefisier,unsigned char *header, struct pixel *img, unsigned
             img[(lungime-1-i)*latime+j]=aux;
         }
     }
-    //scrierea tavloului de pixeli
+    //scrierea tabloului de pixeli
     for(i=0; i<lungime; i++)
     {
 
@@ -273,7 +273,7 @@ void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
     //creare de vector pentru numrerele aleatoare
     randomy=(unsigned long int*)malloc((2*marime)*sizeof(unsigned long int));
 
-    //generare de numerele aleatoare folosind HORSHIFT32
+    //generare de numerele aleatoare folosind XORSHIFT32
     XORSHIFT32(randomy,2*marime,cheie_criptare_1);
 
     //creare a unei permutari pe baza acelor numere
@@ -282,18 +282,18 @@ void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
     //aplicarea permutarii pe matricea de pixeli
     CreeazaPermutare(img,permutare,marime);
 
-    //dupa permutare, se vor duce toate canaele de culoare la valori aproximativ omogene, folosind cel de-al doilea numar din fisierul cheii secrete
+    //dupa permutare, se vor duce toate canalele de culoare la valori aproximativ omogene, folosind cel de-al doilea numar din fisierul cheii secrete
     int i;
     union secretkey secret,nr_random;
     secret.SV=cheie_criptare_2;
     nr_random.SV=randomy[marime];
 
-    //se va efectua operatia XOR intre octeti de pe pozitiile 0,1,2 in scrierea LittleEndian a cheii +primului nr random si octetii de culoare astfel:
+    //se va efectua operatia XOR intre octeti de pe pozitiile 0,1,2 in scrierea LittleEndian a cheii +primului nr. random si octetii de culoare astfel:
     img[0].r=(secret.c[2])^(img[0].r)^nr_random.c[2];
     img[0].g=(secret.c[1])^(img[0].g)^nr_random.c[1];
     img[0].b=(secret.c[0])^(img[0].b)^nr_random.c[0];
     for(i=1; i<marime; i++)
-    {   //se repeta proedeul, xorand in plus cu numerele generate random
+    {   //se repeta procedeul, "xorand" in plus cu numerele generate random
         nr_random.SV=randomy[marime+i];
         img[i].r=(img[i-1].r)^(img[i].r)^nr_random.c[2];
         img[i].g=(img[i-1].g)^(img[i].g)^nr_random.c[1];
