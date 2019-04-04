@@ -1,29 +1,29 @@
-//Acest proiect este destinat criptarii si decriptarii de imagini in format BitMap, citindu-le ca fisiere binare.
-//Formatul BitMap acceptat de acest program este unul simplist, tratand doar imaginile ce contin in scrierea binara cei 54 de octeti de header si tabloul de pixeli.
+//Acest proiect este destinat criptarii si decriptarii de imagini in format BitMap, citindu-le ca fisiere binare
+//Formatul BitMap acceptat de acest program este unul simplist, tratand doar imaginile ce contin in scrierea binara cei 54 de octeti de header si tabloul de pixeli
 //Datele de intrare vor fi dupa cum urmeaza:
 //                      calea fisierului de intrare;
 //                      calea si noul nume al fisierului de iesire (nu este necesar ca acesta sa existe, programul il creeaza automat atat timp cat calea si denumirea sunt date);
-//                      calea fisierului text in care se vor afla doua chei secrete, folosite la criptarea unei imagini sau decriptarea unei imagini deja criptate.
-//Datele vor fi citite de la tastatura.
+//                      calea fisierului text in care se va afla doua chei secrete, folosite la criptarea/decriptarea unei imagini deja criptate
+//Datele vor fi citite de la tastatura
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-//structura ce va contine octetii red, green, blue ai fiecarui pixel
+//Structura ce va contine octetii red, green, blue ai fiecarui pixel
 typedef struct pixel
 {
     unsigned char r,g,b;
 };
 
-//structura ce va permite accesarea octetilor cheilor secrete date ca numar intreg, conform principiului Little Endian
+//Structura ce va permite accesarea octetilor cheii secrete date ca numar intreg,conform Little Endian
 typedef union secretkey
 {
     unsigned long int SV;
     unsigned char c[4];
 };
-//Generatorul XORSHIFT32 etse un generator de numere aparent aleatoare; numerele generate de acesta vor fi folosite la criptare.
+//Generatorul XORSHIFT32 este un generator de numere aparent aleatoare; numerele generate de acesta vor fi folosite la criptare
 //primeste ca parametru un pointer catre un vector alocat dinamic, lungimea acestuia si un "seed" de la care se va incepe generarea numerelor
 void XORSHIFT32( unsigned long int *v, long int n, long unsigned int seed)
 {
@@ -34,7 +34,7 @@ void XORSHIFT32( unsigned long int *v, long int n, long unsigned int seed)
     v[0]=seed;
     for(i=1; i<n; i++)
     {
-        //toate celelalte numere se vor obtine prin shiftarea pixelilor numarului anterior astfel:
+        //toate celelalte numere se vor obtine prin shiftarea pixelilor numarului anterior astfe:
         nr=nr^nr<<13;
         nr=nr^nr>>17;
         nr=nr^nr<<5;
@@ -43,8 +43,8 @@ void XORSHIFT32( unsigned long int *v, long int n, long unsigned int seed)
 }
 
 //functie pentru citirea Header-ului imaginii
-//functia primeste calea fisierului BitMap si, prin intermediul celorlalti parametri, va transmite headerul alocat dinamic, dar si dimensiunile imaginii dupa cum reies din acesta.
-void citesc_header(char *calefisier,unsigned char **header, unsigned long int *lung, unsigned long int *lat)
+//functia primeste calea fisierului BitMap si, prin intermediul celorlalti parametri, va transmite headerul alocat dinamic, dar si dimensiunile imaginii dupa cum reies din acesta
+void citescHeader(char *calefisier,unsigned char **header, unsigned long int *lung, unsigned long int *lat)
 {
     unsigned char h;
     //deschiderea fisierului in format binar
@@ -75,7 +75,7 @@ void citesc_header(char *calefisier,unsigned char **header, unsigned long int *l
     fread(&latime,4,1,f);
     fread(&lungime,4,1,f);
 
-    //reveire pentru a adauga toti octetii in header (inclusiv dimensiunile)
+    //revenire pentru a adauga toti octetii in header (inclusiv dimensiunile)
     fseek(f,-8,SEEK_CUR);
 
     for(i=18; i<54; i++)
@@ -92,7 +92,7 @@ void citesc_header(char *calefisier,unsigned char **header, unsigned long int *l
 }
 
 //o functie ce aloca o matrice de pixeli in varianta liniarizata (ca si vector)
-void matrice_pixeli_liniarizata(struct pixel **pix, unsigned long int lungime, unsigned long int latime )
+void matricePixeliLiniarizata(struct pixel **pix, unsigned long int lungime, unsigned long int latime )
 {
     (*pix)=(struct pixel *)malloc(sizeof(struct pixel)*lungime*latime);
     if((*pix)==NULL)
@@ -101,8 +101,8 @@ void matrice_pixeli_liniarizata(struct pixel **pix, unsigned long int lungime, u
         exit(0);
     }
 }
-//functie pentru citirea tabloului de pixeli si aducerea acestuia la forma liniarizata, asa cum se poate vedea in imagine cu ochiul liber (reprezentand incepand cu coltul de stanga sus si nu stanga jos)
-void citire_pixel(char *calefisier, struct pixel *img, unsigned long int lungime, unsigned long int latime)
+//functie pentru citirea tabloului de pixeli si aducerea acestuia la forma liniarizata, asa cum se vede intr-o poza cu ochiul liber (reprezentand incepand cu coltul de stanga sus si nu stanga jos)
+void citirePixel(char *calefisier, struct pixel *img, unsigned long int lungime, unsigned long int latime)
 {
     FILE *fin=fopen(calefisier,"rb");
 
@@ -137,7 +137,6 @@ void citire_pixel(char *calefisier, struct pixel *img, unsigned long int lungime
 
         }
     }
-    //printf("%d %d %d", img[0].r, img[0].g,img[0].b);
 
     //interschimbarea liniilor
     for(i=0; i<lungime/2; i++)
@@ -152,7 +151,7 @@ void citire_pixel(char *calefisier, struct pixel *img, unsigned long int lungime
 
     fclose(fin);
 }
-//afisarea unei imagini stocate sub forma liniarizata
+//afisarea unei imagini stocata sub forma liniarizata
 void afisare(char *calefisier,unsigned char *header, struct pixel *img, unsigned long int lungime, unsigned long int latime)
 {
     FILE *fout=fopen(calefisier, "wb");
@@ -203,11 +202,11 @@ void afisare(char *calefisier,unsigned char *header, struct pixel *img, unsigned
 }
 
 //functie ce creeaza o permutarea aparent aleatoare, folosind un vector de numere generate aleator
-unsigned long int * PermutareAleatoare(unsigned long int n, unsigned long int *random)
+unsigned long int * permutareAleatoare(unsigned long int n, unsigned long int *random)
 {
     //alocam permutarea
-    unsigned long int *Permutare=(unsigned long int *)malloc(n*sizeof(unsigned long int));
-    if(Permutare==NULL)
+    unsigned long int *permutare=(unsigned long int *)malloc(n*sizeof(unsigned long int));
+    if(permutare==NULL)
     {
         printf("Nu am putut aloca permutarea.");
         exit(0);
@@ -216,20 +215,20 @@ unsigned long int * PermutareAleatoare(unsigned long int n, unsigned long int *r
     unsigned long int i;
      //initializam permutarea
     for(i=0; i<n; i++)
-        Permutare[i]=i;
+        permutare[i]=i;
     //cream permutarea in functie de vectorul de numere aleatoare
     for(i=n-1; i>=1; i--)
     {
         r=random[n-i]%(i+1);
-        aux=Permutare[r];
-        Permutare[r]=Permutare[i];
-        Permutare[i]=aux;
+        aux=permutare[r];
+        permutare[r]=permutare[i];
+        permutare[i]=aux;
     }
 
-    return Permutare;
+    return permutare;
 }
 //functie ce aplica o permutare unui tablou de pixeli
-void CreeazaPermutare(struct pixel *v, unsigned long int *permutare, unsigned long int n)
+void creeazaPermutare(struct pixel *v, unsigned long int *permutare, unsigned long int n)
 {
     int i;
     //folosim un vector auxiliar
@@ -247,7 +246,7 @@ void CreeazaPermutare(struct pixel *v, unsigned long int *permutare, unsigned lo
 
 }
 
-//Functia de criptare ce primeste ca parametri caile fisierelor si creeaza noua imaginr criptata
+//Functia de criptare ce primeste ca parametri caile fisierelor si creeaza noua imagine criptata
 void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
 {
 
@@ -262,13 +261,13 @@ void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
     struct pixel *img;
 
     //citire headerul
-    citesc_header(calefisierintrare,&header,&lungime, &latime);
+    citescHeader(calefisierintrare,&header,&lungime, &latime);
 
     //alocare tabloul de pixeli
-    matrice_pixeli_liniarizata(&img,lungime,latime);
+    matricePixeliLiniarizata(&img,lungime,latime);
 
     //citire tabloul
-    citire_pixel(calefisierintrare,img, lungime,latime);
+    citirePixel(calefisierintrare,img, lungime,latime);
     marime=lungime*latime;
 
     //creare de vector pentru numrerele aleatoare
@@ -278,12 +277,12 @@ void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
     XORSHIFT32(randomy,2*marime,cheie_criptare_1);
 
     //creare a unei permutari pe baza acelor numere
-    permutare=PermutareAleatoare(marime, randomy);
+    permutare=permutareAleatoare(marime, randomy);
 
     //aplicarea permutarii pe matricea de pixeli
-    CreeazaPermutare(img,permutare,marime);
+    creeazaPermutare(img,permutare,marime);
 
-    //dupa permutare, se vor duce toate canalele de culoare la valori aproximativ omogene, folosind cel de-al doilea numar din fisierul cheii secrete
+    //dupa permutare, se vor aduce toate canalele de culoare la valori aproximativ omogene, folosind cel de-al doilea numar din fisierul cheii secrete
     int i;
     union secretkey secret,nr_random;
     secret.SV=cheie_criptare_2;
@@ -313,8 +312,8 @@ void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
 //Partea de decriptare
 //Decriptarea este simetrica criptarii, repetand procesele in ordine inversa
 
-//functie ce genereaza perutarea inversa unei permutari date
-void permutareinversa( unsigned long int *permutare, unsigned long int n)
+//functie ce genereaza permutarea inversa unei permutari date
+void permutareInversa( unsigned long int *permutare,unsigned long int n)
 {
     unsigned long int i, *inversa;
     inversa=(unsigned long int *)malloc(n*sizeof(unsigned long int));
@@ -345,9 +344,9 @@ void decriptare (char *calefisierintrare, char *calefisieriesire, char *calechei
     struct pixel *img;
 
     //citim imaginea data si o alocam dinamic, retinand lungimea, latimea si headerul
-    citesc_header(calefisierintrare,&header,&lungime, &latime);
-    matrice_pixeli_liniarizata(&img,lungime,latime);
-    citire_pixel(calefisierintrare,img, lungime,latime);
+    citescHeader(calefisierintrare,&header,&lungime, &latime);
+    matricePixeliLiniarizata(&img,lungime,latime);
+    citirePixel(calefisierintrare,img, lungime,latime);
     //copiem imaginea pentru criptare
     marime=lungime*latime;
 
@@ -356,7 +355,7 @@ void decriptare (char *calefisierintrare, char *calefisieriesire, char *calechei
 
     XORSHIFT32(randomy,2*marime+1,cheie_criptare_1);
     //generarea permutarii
-    permutare=PermutareAleatoare(marime, randomy);
+    permutare=permutareAleatoare(marime, randomy);
 
     unsigned long int i;
 
@@ -373,10 +372,10 @@ void decriptare (char *calefisierintrare, char *calefisieriesire, char *calechei
     img[0].g=secret.c[1]^img[0].g^nr_random.c[1];
     img[0].b=secret.c[0]^img[0].b^nr_random.c[0];
 
-    //aplicarea permutarii inverse pentru a aduce pixelii l ordinea corecta
-    permutareinversa(permutare,marime);
+    //aplicarea permutarii inverse pentru a aduce pixelii la ordinea corecta
+    permutareInversa(permutare,marime);
     //aplicam permutarea pe pixeli
-    CreeazaPermutare(img, permutare,marime);
+    creeazaPermutare(img, permutare,marime);
 
     //eliberam memoria si inchidem fisierele
     afisare(calefisieriesire,header,img,lungime,latime);
@@ -394,7 +393,7 @@ void copiere (struct pixel *v1, struct pixel *v2, unsigned long int marime)
         v2[i]=v1[i];
 }
 //testu chi^2 ne ofera valorile medii ale pixelilor pe fiecare canal de culoare, pentru a verifica ca imaginea criptata este omogena
-void TestulChiPatrat(char *calefisier)
+void testulChiPatrat(char *calefisier)
 {
 
     unsigned long int lungime, latime,marime;
@@ -402,9 +401,9 @@ void TestulChiPatrat(char *calefisier)
     struct pixel *img;
 
     //citim imaginea data si o alocam dinamic, retinand lungimea, latimea si headerul
-    citesc_header(calefisier,&header,&lungime, &latime);
-    matrice_pixeli_liniarizata(&img,lungime,latime);
-    citire_pixel(calefisier,img, lungime,latime);
+    citescHeader(calefisier,&header,&lungime, &latime);
+    matricePixeliLiniarizata(&img,lungime,latime);
+    citirePixel(calefisier,img, lungime,latime);
     marime=lungime*latime;
 
     unsigned long int i,j;
@@ -413,7 +412,7 @@ void TestulChiPatrat(char *calefisier)
 
     frecventa=(unsigned long int **)malloc(3*sizeof(unsigned long int *));
     for(i=0;i<3;i++)
-        frecventa[i]=(unsigned int *)malloc(256*sizeof(unsigned long int));
+        frecventa[i]=(unsigned long int *)malloc(256*sizeof(unsigned long int));
     for(i=0; i<3; i++)
         for(j=0; j<256; j++)
             frecventa[i][j]=0;
@@ -445,7 +444,7 @@ void TestulChiPatrat(char *calefisier)
         fr=(float)fr/frecventaMedie;
         suma[2]=suma[2]+fr;
     }
-    
+
     printf("Canalul albastru:%lf\nCanalul verde:%lf\nCanalul rosu:%lf\n ", suma[0],suma[1],suma[2]);
 
     for(i=0;i<3;i++)
@@ -481,7 +480,7 @@ int main()
     decriptare(calefisierintrare,calefisieriesire,calecheie);
     //afisare(calefisieriesire,header,rigacripto, lungime,latime);
 
-    TestulChiPatrat(calefisieriesire);
+    testulChiPatrat(calefisieriesire);
 
     free(calecheie);
     free(calefisieriesire);
@@ -490,3 +489,4 @@ int main()
 
     return 0;
 }
+
