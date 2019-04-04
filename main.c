@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 //structura ce va contine octetii red, green, blue ai fiecarui pixel
 typedef struct pixel
@@ -232,7 +233,7 @@ void CreeazaPermutare(struct pixel *v, unsigned long int *permutare, unsigned lo
 {
     int i;
     //folosim un vector auxiliar
-    struct pixel *a=(struct pixel *)malloc(n*sizeof(struct pixel)),aux;
+    struct pixel *a=(struct pixel *)malloc(n*sizeof(struct pixel));
     for(i=0; i<n; i++)
     {
         a[permutare[i]]=v[i];
@@ -313,10 +314,10 @@ void criptare (char *calefisierintrare, char *calefisieriesire, char *calecheie)
 //Decriptarea este simetrica criptarii, repetand procesele in ordine inversa
 
 //functie ce genereaza perutarea inversa unei permutari date
-void permutareinversa( unsigned long int *permutare,unsigned long int n)
+void permutareinversa( unsigned long int *permutare, unsigned long int n)
 {
     unsigned long int i, *inversa;
-    inversa=(unsigned int *)malloc(n*sizeof(unsigned int));
+    inversa=(unsigned long int *)malloc(n*sizeof(unsigned long int));
     for(i=0; i<n; i++)
     {
        inversa[permutare[i]]=i;
@@ -444,7 +445,7 @@ void TestulChiPatrat(char *calefisier)
         fr=(float)fr/frecventaMedie;
         suma[2]=suma[2]+fr;
     }
-    double sumatotala=suma[0]+suma[1]+suma[2];
+    
     printf("Canalul albastru:%lf\nCanalul verde:%lf\nCanalul rosu:%lf\n ", suma[0],suma[1],suma[2]);
 
     for(i=0;i<3;i++)
